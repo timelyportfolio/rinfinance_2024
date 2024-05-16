@@ -1,0 +1,81 @@
+---
+title: "R ∪ Finance ∪ Web"
+author: "Kent Russell @timelyportfolio"
+format:
+  revealjs:
+    html-math-method: plain
+    css: styles.css
+---
+
+## Short History of R ∪ Finance ∪ Web
+
+:::: {.columns}
+
+::: {.column width="40%"}
+![](images/timeline.png){fig-alt="Timeline of events in R and JavaScript since 2006." height=600}
+:::
+
+::: {.column width="60%"}
+- Important events defining my personal journey combining the best of R and JavaScript.
+
+- Thanks to everyone here who has contributed to the ecosystem.
+:::
+
+::::
+
+## Features of R and JavaScript
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+#### R
+
+- amazing, robust built-in statistical functionality
+- brilliant ecosystem covering nearly all topic areas
+- fantastic community
+- data.frames, `xts`
+- extensible with other programming languages
+
+:::
+
+::: {.column .gray-box-col width="50%"}
+
+#### JavaScript
+
+- omnipresent
+- interactivity and input
+- low/no barrier to entry
+- active community
+- server or client side
+
+
+:::
+
+::::
+
+## Initial Approach to Combination
+
+R does work and then sends to web for distribution, communication, interactivity, and input
+
+
+## V8
+
+
+## Free and Open ≠ Available
+
+#### Version Info from Real Job Computer
+
+![](images/work_setup.png){fig-alt="Screenshot of R version info at work showing 2018 3.5.2"}
+
+
+## webr for omnipresence
+
+
+## Widespread Package Availability
+
+- WebR Binary Package [repo](https://r-wasm.github.io/webr-repo-dashboard/) 
+![](images/webr_repo_stats.png){fig-alt="statistics for webr binary package repo with built and available packages" height=180}
+- [r-universe](https://r-universe.dev) / [how to use](https://github.com/r-universe-org/help#how-to-use-webassembly-binaries)
+
+[![](images/runiverse_josuaulrich_builds.png){fig-alt="screenshot of joshuaulrich.r-universe.dev" height = 180}](https://joshuaulrich.r-universe.dev/builds)
