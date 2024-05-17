@@ -1,6 +1,8 @@
 ---
 title: "R ∪ Finance ∪ Web"
 author: "Kent Russell @timelyportfolio"
+execute: 
+  enabled: false
 format:
   revealjs:
     html-math-method: plain
@@ -9,19 +11,17 @@ format:
 
 ## Short History of R ∪ Finance ∪ Web
 
-:::: {.columns}
+![](images/timeline.png){fig-alt="Timeline of events in R and JavaScript since 2006." .absolute top=90 left=20 height="560"}
 
-::: {.column width="40%"}
-![](images/timeline.png){fig-alt="Timeline of events in R and JavaScript since 2006." height=600}
-:::
 
-::: {.column width="60%"}
+::: {.absolute top=90 left=400}
+
 - Important events defining my personal journey combining the best of R and JavaScript.
 
-- Thanks to everyone here who has contributed to the ecosystem.
+- Thanks to everyone here who has contributed to the ecosystem and my journey!
+
 :::
 
-::::
 
 ## Features of R and JavaScript
 
@@ -56,11 +56,17 @@ format:
 
 ## Initial Approach to Combination
 
-R does work and then sends to web for distribution, communication, interactivity, and input
+R does work and then sends to web for distribution, communication, interactivity, and input as file or through `http`/`websocket`.
+
+JavaScript is more like an accessory.
+
+![](images/combination_original_diagram.png){fig-alt="Diagram of R doing work and sending information to web as file or through http/websocket" .absolute top=300 left=20 height="326"}
 
 
-## V8
+## [V8](https://jeroen.r-universe.dev/V8) - JS Running inside R
 
+![](images/combination_v8_diagram.png){fig-alt="Diagram of V8/JavaScript running inside of R with the V8 package"}
+![](images/v8_details.png){fig-alt="V8 package description and details"}
 
 ## Free and Open ≠ Available
 
@@ -69,8 +75,11 @@ R does work and then sends to web for distribution, communication, interactivity
 ![](images/work_setup.png){fig-alt="Screenshot of R version info at work showing 2018 3.5.2"}
 
 
-## webr for omnipresence
+## WebR for Omnipresence
+### R running inside of the browser or Node.js through WebAssembly (WASM)
 
+![](images/combination_webr_in_browser.png){fig-alt="Diagram of R running inside of browser"}
+![](images/combination_webr_in_nodejs.png){fig-alt="Screenshot of R version info at work showing 2018 3.5.2"}
 
 ## Widespread Package Availability
 
@@ -78,4 +87,134 @@ R does work and then sends to web for distribution, communication, interactivity
 ![](images/webr_repo_stats.png){fig-alt="statistics for webr binary package repo with built and available packages" height=180}
 - [r-universe](https://r-universe.dev) / [how to use](https://github.com/r-universe-org/help#how-to-use-webassembly-binaries)
 
-[![](images/runiverse_josuaulrich_builds.png){fig-alt="screenshot of joshuaulrich.r-universe.dev" height = 180}](https://joshuaulrich.r-universe.dev/builds)
+[![](images/runiverse_josuaulrich_builds.png){fig-alt="screenshot of joshuaulrich.r-universe.dev" height="180"}](https://joshuaulrich.r-universe.dev/builds)
+
+## Portfolio Workflow in [WebR REPL](https://webr.r-wasm.org/latest/)
+
+![](images/portfolio_workflow_in_webr_repl.png){.center fig-alt="screenshot of portfolio workflow in webr repl in browser"}
+
+
+## Portfolio Workflow in Node.js
+
+![](images/portfolio_workflow_in_nodejs.png){fig-alt="screenshot of portfolio workflow in node.js with Stackblitz"}
+
+[Stackblitz example](https://stackblitz.com/edit/vitejs-vite-pcgnvq?file=main.js)
+
+
+## Portfolio Workflow Code | Step 1
+
+#### Load Libraries
+
+```{r}
+#| echo: true
+# stubbed non-functioning version of curl so quantmod will load
+webr::install(
+  "curl",
+  repos = "https://timelyportfolio.github.io/webr_repo/"
+)
+webr::install(c(
+  "quantmod", "PortfolioAnalytics",
+  "ROI", "ROI.plugin.quadprog"
+))
+
+library(quantmod)
+library(PortfolioAnalytics)
+library(ROI)
+library(ROI.plugin.quadprog)
+```
+
+
+## Portfolio Workflow Code | Step 2
+
+#### Get JKP Factor Data and Convert to xts
+
+```{r}
+#| echo: true
+# use factor data from https://jkpfactors.com/
+# Jensen, T., Kelly, B., and Pedersen, L. 
+# “Is There a Replication Crisis in Finance?” Journal of Finance (2023)
+temp <- tempfile(fileext=".zip")
+download.file(
+  "https://jkpfactors.com/data/[usa]_[all_themes]_[monthly]_[vw_cap].zip",
+  temp
+)
+unzip(temp)
+factors <- read.csv("/home/web_user/[usa]_[all_themes]_[monthly]_[vw_cap].csv")
+factors_xts <- na.omit(do.call(
+  merge, 
+  lapply(split(factors, factors$name), function(f) {
+    x <- xts(f$ret, order.by = as.Date(f$date))
+    colnames(x) <- f$name[[1]]
+    x
+  })
+))
+```
+
+## Portfolio Workflow Code | Step 3
+
+#### Optimize Mean-Variance Portfolio
+
+```{r}
+#| echo: true
+# mean variance portfolio
+opt_port_meanvar <- optimize.portfolio(
+  R = factors_xts,
+  portfolio = portfolio.spec(assets=colnames(factors_xts)) |>
+    add.constraint(type="full_investment") |>
+    add.objective(type="risk", name="var") |>
+    add.objective(type='return', name='mean') |>
+    add.constraint(type="box", min=0, max=0.4),
+  optimize_method = "ROI",
+  trace = TRUE
+)
+plot(opt_port_meanvar, chart.assets=TRUE, risk.col = "var")
+```
+
+## Things To Consider
+
+- Slower browser load time (still < 30 seconds) and more bandwidth consumption
+
+- Be careful refresh in the browser means starting over and everything disappears (but this can also be a good thing)
+
+- Some packages are not yet available.  `Rglpk` is not working (but I think can be fixed).  Many depend on `curl` but often do not require it for most of the functionality (sort of solved with a stubbed package).
+
+- CORS can make loading data in the browser from remote sources difficult or impossible.
+
+
+## WebR Resources
+
+
+#### WebR Team [George Stagg](https://mastodon.social/@gws@mstdn.social) and Lionel Henry 
+::: {style="font-size: 65%; line-height:1;"}
+
+- [documentation](https://docs.r-wasm.org/webr/latest/)
+- [github](https://github.com/r-wasm)
+- [talk at posit::conf(2023)](https://youtu.be/P7aTHrgjHt4?si=aiD_BA0ehM0rha_f)
+
+:::
+
+#### James Balamuta [@coatless](https://mastodon.social/@coatless)
+
+::: {style="font-size: 65%; line-height:1;"}
+
+- [quarto-webr](https://quarto-webr.thecoatlessprofessor.com/) | amazing tool and fantastic, thorough guide to all things WebR
+- [talk at Stanford](https://talks.thecoatlessprofessor.com/stats352-guest-lectures-on-dynamic-interactions-wasm/)
+
+:::
+
+#### Bob Rudis [@hrbrmstr](https://mastodon.social/@hrbrmstr)
+
+::: {style="font-size: 65%; line-height:1;"}
+
+- [talk at NYR](https://rud.is/w/2023-nyr-webr)
+- [webr book](https://rud.is/books/webr-cli-book/)
+
+:::
+
+#### Colin Fay [@colinfay](https://mastodon.social/@colinfay@fosstodon.org)
+
+::: {style="font-size: 65%; line-height:1;"}
+
+- [blog](https://colinfay.me/categories/)
+
+:::
